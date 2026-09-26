@@ -1,0 +1,6 @@
+# Rămân doar pe PC — nu fac parte din site
+diaro_backup/
+imagini_de_sortat/
+matcher.html
+*.py
+__pycache__/

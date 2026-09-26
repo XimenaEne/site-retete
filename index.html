@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Colecția Ximenei</title>
+    <meta name="description" content="Colecția privată de rețete.">
+    
+    <!-- Old Money Fonts: Playfair Display for regal headings, Outfit for clean text -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<link rel="stylesheet" href="style.css">
+    <style>
+        .admin-fab {
+            position: fixed;
+            top: 1.2rem;
+            right: 1.5rem;
+            z-index: 999;
+            background: rgba(28, 59, 43, 0.85);
+            color: var(--gold, #C7A977);
+            border: 1px solid rgba(199,169,119,0.4);
+            border-radius: 50px;
+            padding: 0.5rem 1.1rem;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            text-decoration: none;
+            backdrop-filter: blur(8px);
+            transition: 0.25s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .admin-fab:hover {
+            background: rgba(28, 59, 43, 1);
+            border-color: var(--gold, #C7A977);
+            color: #E8C98A;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Floating Admin Button -->
+    <a href="admin.html" class="admin-fab" title="Panou de administrare">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        Admin
+    </a>
+
+    <header class="hero">
+        <div class="hero-content">
+            <img src="imagini/crown.jpg" alt="Coroană" class="hero-crown">
+            <div class="subtitle">ARHIVĂ CULINARĂ PRIVATĂ</div>
+            <h1>Colecția Ximenei</h1>
+            <p>O colecție privată de rețete, păstrate cu eleganță.</p>
+        </div>
+    </header>
+
+    <div class="search-wrapper">
+        <div class="search-container">
+            <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input type="text" id="searchInput" placeholder="Căutare în arhivă...">
+        </div>
+    </div>
+
+    <main>
+        <div class="stats-container">
+            <div class="stats-line"></div>
+            <div class="stats" id="stats">Încărcare arhivă...</div>
+            <div class="stats-line"></div>
+        </div>
+        
+        <div class="recipe-grid" id="recipeGrid">
+            <!-- Recipe cards will be injected here -->
+        </div>
+    </main>
+
+    <footer style="text-align: center; padding: 2rem; border-top: 1px solid #E0DDD5; margin-top: 2rem;">
+        <p style="color: var(--text-secondary); font-size: 0.9rem; letter-spacing: 1px;">&copy; 2026 Colecția Ximenei</p>
+        <a href="admin.html" style="color: var(--text-secondary); opacity: 0.3; text-decoration: none; font-size: 0.8rem; margin-top: 0.5rem; display: inline-block;">Panou de Administrare</a>
+    </footer>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="recipeModal">
+        <div class="modal-content">
+            <button class="close-modal" id="closeModal" aria-label="Închide">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+            <div class="modal-header">
+                <span class="source-badge" id="modalSource" style="display: none;">Sursa</span>
+                <h2 id="modalTitle">Nume Rețetă</h2>
+            </div>
+            <div class="modal-layout">
+                <div class="modal-image-col">
+                    <img id="modalImage" src="" alt="Imagine Rețetă">
+                    <div class="carousel-controls" id="carouselControls" style="display: none;">
+                        <button id="prevImage">&lt;</button>
+                        <span id="imageIndicator">1 / 1</span>
+                        <button id="nextImage">&gt;</button>
+                    </div>
+                </div>
+                <div class="modal-ingredients" id="modalIngredients">
+                    <!-- Ingredients go here -->
+                </div>
+                <div class="modal-prep" id="modalPreparation">
+                    <!-- Preparation goes here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lightbox for Image Zoom -->
+    <div class="lightbox-overlay" id="lightboxOverlay">
+        <button class="close-lightbox" id="closeLightbox" aria-label="Închide">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+        <img src="" alt="Imagine Mare" id="lightboxImage">
+    </div>
+
+    <script src="app.js"></script>
+
+    <footer style="
+        background: var(--dark-green, #1C3B2B);
+        color: rgba(255,255,255,0.45);
+        text-align: center;
+        padding: 2.5rem 2rem;
+        font-size: 0.8rem;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        font-family: 'Outfit', sans-serif;
+        border-top: 3px solid rgba(199,169,119,0.3);
+    ">
+        <span style="color: var(--gold, #C7A977); font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.1rem; letter-spacing: 0; text-transform: none;">Colecția Ximenei</span>
+        <span style="margin: 0 1rem; opacity: 0.3;">—</span>
+        Arhivă culinară privată
+    </footer>
+</body>
+</html>
