@@ -873,6 +873,10 @@ main {
 }
 
 @media (max-width: 600px) {
+    .close-modal, .close-lightbox {
+        display: none !important;
+    }
+    
     .site-footer {
         flex-direction: column;
         gap: 0.5rem;

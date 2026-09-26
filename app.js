@@ -336,7 +336,7 @@ function openModal(recipe) {
     modalOverlay.classList.add('active');
     document.documentElement.classList.add('no-scroll');
     // un pas în istoric, ca butonul Back de pe telefon să închidă rețeta, nu site-ul
-    history.pushState({ layer: 'modal' }, '');
+    history.pushState({ layer: 'modal' }, '', '#modal');
 }
 
 function updateModalImage() {
@@ -399,7 +399,7 @@ modalImage.addEventListener('click', () => {
     if (!modalImage.src || modalImage.src.includes('undefined')) return;
     lightboxImage.src = modalImage.src;
     lightboxOverlay.classList.add('active');
-    history.pushState({ layer: 'lightbox' }, '');
+    history.pushState({ layer: 'lightbox' }, '', '#poza');
 });
 
 closeLightboxBtn.addEventListener('click', closeLightbox);
