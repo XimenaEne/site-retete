@@ -101,6 +101,7 @@ const editPreparare    = document.getElementById('editPreparare');
 const editImgGrid      = document.getElementById('editImgGrid');
 const editImagineInput = document.getElementById('editImagine');
 const editUploadPreview= document.getElementById('editUploadPreview');
+const approveEditBtn   = document.getElementById('approveEditBtn');
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 function showLoading(t) { loadingText.textContent = t || 'Se procesează...'; loadingOverlay.classList.add('visible'); }
@@ -382,6 +383,7 @@ function openEditModal(index) {
 
     editUploadPreview.innerHTML = '';
     editImagineInput.value = '';
+    approveEditBtn.classList.toggle('hidden', r.Status === 'Publicat');
 
     editModalOverlay.classList.add('active');
     document.documentElement.style.overflow = 'hidden';
@@ -407,13 +409,14 @@ document.getElementById('cancelEditBtn').addEventListener('click',   closeModal)
 editModalOverlay.addEventListener('click', e => { if (e.target === editModalOverlay) closeModal(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
-document.getElementById('saveEditBtn').addEventListener('click', async () => {
+async function saveEdit(approve) {
     if (editingIndex === null) return;
     const r = recipesData[editingIndex];
     r.Nume   = editNume.value.trim();
     const ing  = editIngrediente.value.trim();
     const prep = editPreparare.value.trim();
     r.Reteta = `Ingrediente:\n${ing}\n\nMod de preparare:\n${prep}`;
+    const previousStatus = r.Status;
 
     try {
         if (editNewFiles.length) {
@@ -422,7 +425,9 @@ document.getElementById('saveEditBtn').addEventListener('click', async () => {
             r.Imagine = [...existing, ...newUrls].join(',');
             editNewFiles = [];
         }
-        const saved = await saveRecipes(`"${r.Nume}" actualizată!`);
+        if (approve) r.Status = 'Publicat';
+        const saved = await saveRecipes(approve ? `"${r.Nume}" aprobată și publicată!` : `"${r.Nume}" actualizată!`);
+        if (!saved) r.Status = previousStatus;
         updateBadges(); renderPending(); renderApproved();
         if (saved) closeModal();
     } catch (err) {
@@ -430,7 +435,9 @@ document.getElementById('saveEditBtn').addEventListener('click', async () => {
         showAlert('Eroare: ' + err.message, 'error');
     }
     hideLoading();
-});
+}
+document.getElementById('saveEditBtn').addEventListener('click',    () => saveEdit(false));
+document.getElementById('approveEditBtn').addEventListener('click', () => saveEdit(true));
 
 // ── Login Screen ───────────────────────────────────────────────────────────
 function showLoginScreen(message = '') {
