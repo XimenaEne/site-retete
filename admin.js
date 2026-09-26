@@ -263,9 +263,9 @@ function renderList(container, items) {
                 ${r.Status === 'Publicat' ? '✔ Publicat' : '⏳ În așteptare'}
             </span>
             <div class="recipe-item-actions">
-                ${r.Status === 'In Asteptare'
-                    ? `<button class="btn btn-approve btn-sm" onclick="approveRecipe(${i})">✔ Aprobă</button>`
-                    : `<button class="btn btn-sm" style="background:#eee;color:#555;" onclick="moveToWaiting(${i})">⏳ Retrage</button>`}
+                ${r.Status === 'Publicat'
+                    ? `<button class="btn btn-sm" style="background:#eee;color:#555;" onclick="moveToWaiting(${i})">⏳ Retrage</button>`
+                    : ''}
                 <button class="btn btn-sm" style="background:#eee;color:#555;" onclick="openEditModal(${i})">✏ Editează</button>
                 <button class="btn btn-danger btn-sm" onclick="deleteRecipe(${i})">🗑 Șterge</button>
             </div>
@@ -299,7 +299,6 @@ async function setStatus(i, status, msg) {
     if (!await saveRecipes(msg)) { r.Status = previous; refreshLists(); }
 }
 
-function approveRecipe(i)   { setStatus(i, 'Publicat',     `"${recipesData[i].Nume}" aprobată și publicată!`); }
 function moveToWaiting(i)   { setStatus(i, 'In Asteptare', `"${recipesData[i].Nume}" retrasă de pe site.`); }
 
 async function deleteRecipe(i) {
@@ -324,8 +323,8 @@ document.getElementById('addImagine').addEventListener('change', function() {
     });
 });
 
-document.getElementById('submitRecipeBtn').addEventListener('click', async () => {
-    const nume        = document.getElementById('addNume').value.trim();
+async function addRecipe(publish) {
+    const nume       = document.getElementById('addNume').value.trim();
     const ingrediente = document.getElementById('addIngrediente').value.trim();
     const preparare   = document.getElementById('addPreparare').value.trim();
     const files       = Array.from(document.getElementById('addImagine').files);
@@ -339,15 +338,16 @@ document.getElementById('submitRecipeBtn').addEventListener('click', async () =>
         if (files.length) imgUrls = await uploadImages(files, nume);
 
         const retetaText = `Ingrediente:\n${ingrediente}\n\nMod de preparare:\n${preparare}`;
-        const recipe = { Nume: nume, Reteta: retetaText, Imagine: imgUrls.join(','), Status: 'In Asteptare' };
+        const recipe = { Nume: nume, Reteta: retetaText, Imagine: imgUrls.join(','),
+                         Status: publish ? 'Publicat' : 'In Asteptare' };
         recipesData.push(recipe);
 
-        if (!await saveRecipes(`"${nume}" adăugată în așteptare!`)) {
+        if (!await saveRecipes(publish ? `"${nume}" publicată pe site!` : `"${nume}" adăugată în așteptare!`)) {
             // formularul rămâne completat, ca să poți încerca din nou
             recipesData.splice(recipesData.indexOf(recipe), 1);
             return;
         }
-        updateBadges();
+        refreshLists();
 
         document.getElementById('addNume').value = '';
         document.getElementById('addIngrediente').value = '';
@@ -359,7 +359,9 @@ document.getElementById('submitRecipeBtn').addEventListener('click', async () =>
         showAlert('Eroare: ' + err.message, 'error');
     }
     hideLoading();
-});
+}
+document.getElementById('submitRecipeBtn').addEventListener('click',  () => addRecipe(false));
+document.getElementById('publishRecipeBtn').addEventListener('click', () => addRecipe(true));
 
 // ── Edit Modal ─────────────────────────────────────────────────────────────
 function openEditModal(index) {

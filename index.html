@@ -88,28 +88,45 @@
 
     <!-- Modal -->
     <div class="modal-overlay" id="recipeModal">
-        <div class="modal-content">
+        <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
             <button class="close-modal" id="closeModal" aria-label="Închide">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             </button>
-            <div class="modal-header">
-                <span class="source-badge" id="modalSource" style="display: none;">Sursa</span>
-                <h2 id="modalTitle">Nume Rețetă</h2>
-            </div>
-            <div class="modal-layout">
-                <div class="modal-image-col">
-                    <img id="modalImage" src="" alt="Imagine Rețetă">
-                    <div class="carousel-controls" id="carouselControls" style="display: none;">
-                        <button id="prevImage">&lt;</button>
-                        <span id="imageIndicator">1 / 1</span>
-                        <button id="nextImage">&gt;</button>
+            <div class="modal-scroll" id="modalScroll">
+                <div class="modal-inner">
+                    <div class="modal-hero" id="modalHero">
+                        <div class="modal-image-col">
+                            <img id="modalImage" src="" alt="Imagine Rețetă">
+                            <div class="carousel-controls" id="carouselControls" style="display: none;">
+                                <button id="prevImage" aria-label="Poza anterioară">&lt;</button>
+                                <span id="imageIndicator">1 / 1</span>
+                                <button id="nextImage" aria-label="Poza următoare">&gt;</button>
+                            </div>
+                        </div>
+                        <div class="modal-heading">
+                            <span class="modal-rule"></span>
+                            <h2 id="modalTitle">Nume Rețetă</h2>
+                            <div class="modal-chips" id="modalChips"></div>
+                            <p class="modal-hint" id="modalHint">Bifează ingredientele și pașii pe măsură ce gătești, ca să nu pierzi șirul.</p>
+                        </div>
                     </div>
-                </div>
-                <div class="modal-ingredients" id="modalIngredients">
-                    <!-- Ingredients go here -->
-                </div>
-                <div class="modal-prep" id="modalPreparation">
-                    <!-- Preparation goes here -->
+                    <div class="modal-body-grid" id="modalBody">
+                        <section class="modal-ingredients" id="ingredientsSection">
+                            <div class="section-head">
+                                <h3>Ingrediente</h3>
+                                <span class="section-count" id="ingCount"></span>
+                            </div>
+                            <div id="modalIngredients"></div>
+                        </section>
+                        <section class="modal-prep">
+                            <div class="section-head">
+                                <h3>Mod de preparare</h3>
+                                <span class="section-count" id="stepCount"></span>
+                            </div>
+                            <ol class="step-list" id="modalPreparation"></ol>
+                            <div class="modal-notes" id="modalNotes"></div>
+                        </section>
+                    </div>
                 </div>
             </div>
         </div>

@@ -293,7 +293,7 @@ main {
 }
 
 .modal-content {
-    background: #FDFCF9;
+    background: #FFFFFF;
     padding: 10px;
     width: 98vw;
     max-width: 1800px;
@@ -318,38 +318,339 @@ main {
     transition: var(--transition);
 }
 
-.modal-layout {
-    display: flex;
-    width: 100%;
-    gap: 3rem;
-    padding: 0 4rem 4rem;
-    overflow-y: auto;
+.modal-scroll {
     flex-grow: 1;
+    overflow-y: auto;
+    min-height: 0;
+}
+
+.modal-inner {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 4.5rem 4rem 5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 4.5rem;
+}
+
+/* Poza + titlul */
+.modal-hero {
+    display: flex;
+    gap: 4.5rem;
+    align-items: center;
 }
 
 .modal-image-col {
-    flex: 1;
-    background: transparent;
+    flex: 0 0 min(520px, 45%);
     position: relative;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    border-right: 1px solid #E0DDD5;
-    padding-right: 3rem;
 }
 
 .modal-image-col img {
+    display: block;
     width: 100%;
-    height: auto;
-    aspect-ratio: 1 / 1;
+    aspect-ratio: 6 / 5;
     object-fit: cover;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    border-radius: 4px;
+    box-shadow: 0 28px 56px -28px rgba(44, 30, 22, 0.45);
     cursor: zoom-in;
+}
+
+.modal-hero.no-image .modal-image-col {
+    display: none;
+}
+
+.modal-heading {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.6rem;
+}
+
+.modal-hero.no-image .modal-heading {
+    align-items: center;
+    text-align: center;
+}
+
+.modal-rule {
+    width: 56px;
+    height: 2px;
+    background: var(--gold);
+}
+
+.modal-heading h2 {
+    font-size: clamp(2.4rem, 5vw, 4.75rem);
+    font-weight: 600;
+    font-style: italic;
+    line-height: 1.04;
+    color: var(--dark-green);
+    overflow-wrap: break-word;
+    max-width: 100%;
+}
+
+.modal-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+}
+
+.modal-chips:empty {
+    display: none;
+}
+
+.modal-chips span {
+    padding: 0.45rem 1rem;
+    border: 1px solid #E3D9C6;
+    border-radius: 999px;
+    background: #FFFFFF;
+    color: var(--dark-green);
+    font-size: 0.95rem;
+    line-height: 1.4;
+}
+
+.modal-hint {
+    max-width: 28rem;
+    color: var(--text-secondary);
+    font-size: 1rem;
+    line-height: 1.6;
+    font-weight: 300;
+}
+
+/* Ingrediente + pași */
+.modal-body-grid {
+    display: grid;
+    grid-template-columns: 400px minmax(0, 1fr);
+    gap: 4.5rem;
+    align-items: start;
+}
+
+.modal-body-grid.no-ingredients {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.section-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+}
+
+.section-head h3 {
+    font-size: 2.1rem;
+    font-style: italic;
+    font-weight: 600;
+    line-height: 1.2;
+    color: var(--dark-green);
+}
+
+.section-count {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    white-space: nowrap;
+}
+
+.modal-ingredients {
+    background: #FFFFFF;
+    border: 1px solid #EAE2D3;
+    border-radius: 4px;
+    padding: 2.25rem 2rem 1.75rem;
+}
+
+.ing-group + .ing-group {
+    margin-top: 1.75rem;
+}
+
+.ing-group-label {
+    padding-bottom: 0.4rem;
+    color: #8C6D1F;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+.ing-list {
+    list-style: none;
+}
+
+.ing-item {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    width: 100%;
+    min-height: 48px;
+    padding: 0.6rem 0;
+    background: none;
+    border: 0;
+    border-bottom: 1px solid #F0EADF;
+    text-align: left;
+    cursor: pointer;
+    font: inherit;
+    font-size: 1rem;
+    line-height: 1.45;
+    color: var(--text-primary);
+}
+
+.ing-list li:last-child .ing-item {
+    border-bottom: 0;
+}
+
+.ing-item strong {
+    font-weight: 600;
+    color: var(--dark-green);
+}
+
+.check {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 1.5px solid #B9AC98;
+    background: #FFFFFF;
+    color: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.check svg {
+    opacity: 0;
+}
+
+.ing-item:hover .check {
+    border-color: var(--dark-green);
+}
+
+.ing-item[aria-pressed="true"] .check {
+    background: var(--dark-green);
+    border-color: var(--dark-green);
+}
+
+.ing-item[aria-pressed="true"] .check svg {
+    opacity: 1;
+}
+
+.ing-item[aria-pressed="true"] .ing-text,
+.ing-item[aria-pressed="true"] strong {
+    color: #7A6A5F;
+    text-decoration: line-through;
+}
+
+.step-list {
+    list-style: none;
+}
+
+.step {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.5rem;
+    padding: 1.4rem 0;
+    border-bottom: 1px solid #EAE2D3;
+}
+
+.step:first-child {
+    padding-top: 0.4rem;
+}
+
+.step-num {
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border-radius: 50%;
+    border: 1.5px solid #C9B27A;
+    background: #FFFFFF;
+    color: #8C6D1F;
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.step-num svg {
+    display: none;
+    width: 16px;
+    height: 16px;
+}
+
+.step-num:hover {
+    border-color: var(--dark-green);
+}
+
+.step-num[aria-pressed="true"] {
+    background: var(--dark-green);
+    border-color: var(--dark-green);
+    color: #FFFFFF;
+}
+
+.step-num[aria-pressed="true"] .num {
+    display: none;
+}
+
+.step-num[aria-pressed="true"] svg {
+    display: block;
+}
+
+.step p {
+    padding-top: 0.55rem;
+    font-size: 1.0625rem;
+    line-height: 1.7;
+    color: var(--text-primary);
+    white-space: pre-wrap;
+}
+
+.step.done p {
+    color: #7A6A5F;
+}
+
+.modal-notes {
+    margin-top: 2.25rem;
+    padding: 1.75rem 2rem;
+    /* aceeași marmură ca pe pagina principală */
+    background: #FCF9F2 url('imagini/bg.jpg') center / cover;
+    border: 1px solid #EAE2D3;
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.modal-notes h4 {
+    font-size: 1.4rem;
+    font-style: italic;
+    font-weight: 600;
+    color: var(--dark-green);
+}
+
+.modal-notes p {
+    font-size: 1rem;
+    line-height: 1.65;
+}
+
+.modal-notes .note-source {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+.ing-item:focus-visible,
+.step-num:focus-visible,
+.close-modal:focus-visible {
+    outline: 2px solid #8C6D1F;
+    outline-offset: 3px;
 }
 
 .carousel-controls {
     position: absolute;
     bottom: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
     display: flex;
     align-items: center;
     gap: 1.5rem;
@@ -384,96 +685,99 @@ main {
 
 .close-modal {
     position: absolute;
-    top: 1.5rem;
-    right: 1.5rem;
-    background: transparent;
-    border: none;
-    color: var(--text-primary);
+    top: 1.25rem;
+    right: 1.25rem;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1px solid #E3D9C6;
+    background: rgba(255, 255, 255, 0.94);
+    color: var(--dark-green);
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
-    transition: var(--transition);
-    z-index: 10;
+    transition: transform 0.5s ease, color 0.3s ease;
+    z-index: 20;
 }
 
 .close-modal:hover {
-    color: var(--gold);
+    color: #8C6D1F;
     transform: rotate(90deg);
 }
 
-.modal-header {
-    padding: 3.5rem 4rem 2rem;
-    text-align: center;
-    border-bottom: 1px solid #E0DDD5;
-    margin-bottom: 3rem;
-}
-
-.source-badge {
-    display: block;
-    color: var(--gold);
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    letter-spacing: 3px;
-    margin-bottom: 1rem;
-    font-weight: 700;
-    font-family: 'Outfit', sans-serif;
-}
-
-.modal-header h2 {
-    font-size: 2.8rem;
-    color: var(--dark-green);
-    line-height: 1.2;
-    font-style: italic;
-}
-
-
-.modal-ingredients {
-    flex: 1;
-    font-size: 1.05rem;
-    line-height: 1.8;
-    color: var(--text-primary);
-    white-space: pre-wrap;
-    font-weight: 300;
-    border-right: 1px solid #E0DDD5;
-    padding-right: 3rem;
-}
-
-.modal-prep {
-    flex: 1;
-    font-size: 1.05rem;
-    line-height: 1.8;
-    color: var(--text-primary);
-    white-space: pre-wrap;
-    font-weight: 300;
-}
-
-.recipe-section-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.5rem;
-    color: var(--dark-green);
-    margin-top: 2rem;
-    margin-bottom: 0.5rem;
-    font-style: italic;
-    font-weight: 600;
-}
-
-.recipe-section-title:first-child {
-    margin-top: 0;
-}
-
 @media (max-width: 900px) {
-    .modal-layout {
+    .modal-inner {
+        padding: 3rem 2rem 3rem;
+        gap: 2.75rem;
+    }
+    .modal-hero {
         flex-direction: column;
-        padding: 0 2rem 2rem;
+        align-items: stretch;
+        gap: 2rem;
     }
-    .modal-header {
-        padding: 2.5rem 2rem 1.5rem;
-        margin-bottom: 2rem;
-    }
-    .modal-ingredients,
     .modal-image-col {
-        border-right: none;
-        border-bottom: 1px solid #E0DDD5;
-        padding-right: 0;
-        padding-bottom: 2rem;
+        flex: none;
+    }
+    .modal-image-col img {
+        aspect-ratio: 4 / 3;
+    }
+    .modal-body-grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 2.75rem;
+    }
+}
+
+/* Pe telefon rețeta ocupă tot ecranul, cu poza până la margini */
+@media (max-width: 600px) {
+    .modal-overlay {
+        padding: 0;
+    }
+    .modal-content {
+        width: 100vw;
+        height: 100dvh;
+        padding: 0;
+        border: none;
+        border-radius: 0;
+    }
+    .modal-content::after {
+        display: none;
+    }
+    .modal-inner {
+        padding: 0 1.25rem 3rem;
+        gap: 2.5rem;
+    }
+    .modal-hero.no-image {
+        padding-top: 4.5rem;
+    }
+    .modal-image-col {
+        margin: 0 -1.25rem;
+    }
+    .modal-image-col img {
+        border-radius: 0;
+        box-shadow: none;
+    }
+    .modal-heading {
+        gap: 1.1rem;
+    }
+    .modal-hint {
+        display: none;
+    }
+    .modal-ingredients {
+        padding: 1.75rem 1.25rem 1.25rem;
+    }
+    .section-head h3 {
+        font-size: 1.75rem;
+    }
+    .step {
+        gap: 1rem;
+        padding: 1.25rem 0;
+    }
+    .step p {
+        font-size: 1rem;
+    }
+    .modal-notes {
+        padding: 1.5rem 1.25rem;
     }
 }
 
@@ -495,15 +799,6 @@ main {
 @media (max-width: 768px) {
     .hero h1 {
         font-size: 3rem;
-    }
-    .modal-header {
-        padding: 2.5rem 1.5rem 1.5rem;
-    }
-    .modal-header h2 {
-        font-size: 2.2rem;
-    }
-    .modal-body {
-        padding: 1.5rem 1.5rem 3rem;
     }
 }
 
