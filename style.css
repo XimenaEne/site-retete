@@ -841,3 +841,44 @@ main {
     color: var(--gold);
     transform: rotate(90deg);
 }
+
+.site-footer {
+    background: var(--dark-green, #1C3B2B);
+    color: rgba(255,255,255,0.45);
+    text-align: center;
+    padding: 2.5rem 2rem;
+    font-size: 0.8rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-family: 'Outfit', sans-serif;
+    border-top: 3px solid rgba(199,169,119,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.site-footer-title {
+    color: var(--gold, #C7A977);
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1.1rem;
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+.site-footer-separator {
+    opacity: 0.3;
+}
+
+@media (max-width: 600px) {
+    .site-footer {
+        flex-direction: column;
+        gap: 0.5rem;
+        padding: 2rem 1rem;
+    }
+    .site-footer-separator {
+        display: none;
+    }
+}
