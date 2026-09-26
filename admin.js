@@ -92,6 +92,7 @@ const serverStatus     = document.getElementById('serverStatus');
 const pendingBadge     = document.getElementById('pendingBadge');
 const approvedBadge    = document.getElementById('approvedBadge');
 const pendingList      = document.getElementById('pendingList');
+const pendingSearch    = document.getElementById('pendingSearch');
 const approvedList     = document.getElementById('approvedList');
 const editModalOverlay = document.getElementById('editModalOverlay');
 const editNume         = document.getElementById('editNume');
@@ -259,9 +260,17 @@ function renderList(container, items) {
         </div>`).join('')}</div>`;
 }
 
-function renderPending()  {
-    renderList(pendingList,  recipesData.map((r,i)=>({r,i})).filter(({r})=>r.Status==='In Asteptare'&&r.Nume));
+// fără diacritice, ca „ciorba” să găsească și „ciorbă”
+function normalize(text) {
+    return (text || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
 }
+
+function renderPending()  {
+    const term = normalize(pendingSearch.value.trim());
+    renderList(pendingList,  recipesData.map((r,i)=>({r,i})).filter(({r})=>r.Status==='In Asteptare'&&r.Nume
+        && (!term || normalize(r.Nume).includes(term) || normalize(r.Reteta).includes(term))));
+}
+pendingSearch.addEventListener('input', renderPending);
 function renderApproved() {
     renderList(approvedList, recipesData.map((r,i)=>({r,i})).filter(({r})=>r.Status==='Publicat'&&r.Nume));
 }
