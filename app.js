@@ -335,6 +335,8 @@ function openModal(recipe) {
     
     modalOverlay.classList.add('active');
     document.documentElement.classList.add('no-scroll');
+    // un pas în istoric, ca butonul Back de pe telefon să închidă rețeta, nu site-ul
+    history.pushState({ layer: 'modal' }, '');
 }
 
 function updateModalImage() {
@@ -354,10 +356,25 @@ nextImageBtn.addEventListener('click', () => {
     updateModalImage();
 });
 
+// Rețeta și poza mărită au fiecare câte un pas în istoric, așa că orice închidere
+// (X, click alături, Escape) trece prin history.back(); popstate închide stratul de sus.
+// Astfel Back pe telefon închide întâi poza, apoi rețeta, și abia apoi iese din site.
 function closeModal() {
-    modalOverlay.classList.remove('active');
-    document.documentElement.classList.remove('no-scroll');
+    history.back();
 }
+
+function closeLightbox() {
+    history.back();
+}
+
+window.addEventListener('popstate', () => {
+    if (lightboxOverlay.classList.contains('active')) {
+        lightboxOverlay.classList.remove('active');
+    } else if (modalOverlay.classList.contains('active')) {
+        modalOverlay.classList.remove('active');
+        document.documentElement.classList.remove('no-scroll');
+    }
+});
 
 closeModalBtn.addEventListener('click', closeModal);
 
@@ -371,7 +388,7 @@ modalOverlay.addEventListener('click', (e) => {
 document.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape') return;
     if (lightboxOverlay.classList.contains('active')) {
-        lightboxOverlay.classList.remove('active');
+        closeLightbox();
     } else if (modalOverlay.classList.contains('active')) {
         closeModal();
     }
@@ -382,15 +399,14 @@ modalImage.addEventListener('click', () => {
     if (!modalImage.src || modalImage.src.includes('undefined')) return;
     lightboxImage.src = modalImage.src;
     lightboxOverlay.classList.add('active');
+    history.pushState({ layer: 'lightbox' }, '');
 });
 
-closeLightboxBtn.addEventListener('click', () => {
-    lightboxOverlay.classList.remove('active');
-});
+closeLightboxBtn.addEventListener('click', closeLightbox);
 
 lightboxOverlay.addEventListener('click', (e) => {
     if (e.target === lightboxOverlay) {
-        lightboxOverlay.classList.remove('active');
+        closeLightbox();
     }
 });
 
