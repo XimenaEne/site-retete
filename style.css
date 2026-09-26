@@ -267,28 +267,6 @@ main {
     font-weight: 300;
 }
 
-.view-btn {
-    background: transparent;
-    color: var(--dark-green);
-    border: none;
-    border-top: 1px solid #E0DDD5;
-    padding: 1.2rem;
-    font-weight: 600;
-    font-size: 0.8rem;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: var(--transition);
-    font-family: 'Outfit', sans-serif;
-    text-align: center;
-    width: 100%;
-    margin-top: auto;
-}
-
-.recipe-card:hover .view-btn {
-    color: var(--gold);
-    border-top-color: var(--gold);
-}
 
 /* Modal - Classic Letter Style */
 .modal-overlay {

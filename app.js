@@ -93,7 +93,6 @@ function renderRecipes() {
             ${imgHtml}
             <div class="recipe-content">
                 <h3 class="recipe-title">${recipe.Nume}</h3>
-                <button class="view-btn">Prepară Acum ➔</button>
             </div>
         `;
 
