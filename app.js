@@ -25,6 +25,20 @@ const lightboxImage = document.getElementById('lightboxImage');
 let currentImages = [];
 let currentImageIndex = 0;
 
+// Textul rețetelor se afișează ca text, nu ca HTML (ex. „< 5 minute” nu strică pagina)
+function escapeHtml(text) {
+    return (text || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+// fără diacritice, ca „ciorba” să găsească și „ciorbă”
+function normalize(text) {
+    return (text || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+}
+
+function getImages(recipe) {
+    return (recipe.Imagine || '').split(',').map(s => s.trim()).filter(Boolean);
+}
+
 // Initialize
 async function init() {
     try {
@@ -71,11 +85,12 @@ function renderRecipes() {
     recipeGrid.innerHTML = '';
     
     if (filteredRecipes.length === 0) {
+        const searching = searchInput.value.trim() !== '';
         recipeGrid.innerHTML = `
-            <div style="grid-column: 1 / -1; text-align: center; padding: 4rem; color: #718096;">
+            <div style="grid-column: 1 / -1; text-align: center; padding: 4rem 1rem; color: #718096;">
                 <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 1rem; opacity: 0.5;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                <h3 style="font-size: 1.5rem; margin-bottom: 0.5rem;">Nu am găsit nicio rețetă</h3>
-                <p>Încearcă alte cuvinte cheie pentru căutare.</p>
+                <h3 style="font-size: 1.5rem; margin-bottom: 0.5rem;">${searching ? 'Nu am găsit nicio rețetă' : 'Încă nu sunt rețete publicate'}</h3>
+                <p>${searching ? 'Încearcă alte cuvinte cheie pentru căutare.' : 'Revino curând.'}</p>
             </div>
         `;
         return;
@@ -83,16 +98,18 @@ function renderRecipes() {
 
     const fragment = document.createDocumentFragment();
 
-    filteredRecipes.forEach((recipe, index) => {
+    filteredRecipes.forEach(recipe => {
         const card = document.createElement('div');
         card.className = 'recipe-card';
-        
-        const imgHtml = recipe.Imagine ? `<div style="overflow: hidden;"><img src="${recipe.Imagine}" alt="${recipe.Nume}" class="recipe-img"></div>` : '';
+
+        // pe card apare doar prima poză; restul se văd în rețetă
+        const firstImage = getImages(recipe)[0];
+        const imgHtml = firstImage ? `<div style="overflow: hidden;"><img src="${escapeHtml(firstImage)}" alt="${escapeHtml(recipe.Nume)}" class="recipe-img" loading="lazy"></div>` : '';
 
         card.innerHTML = `
             ${imgHtml}
             <div class="recipe-content">
-                <h3 class="recipe-title">${recipe.Nume}</h3>
+                <h3 class="recipe-title">${escapeHtml(recipe.Nume)}</h3>
             </div>
         `;
 
@@ -104,20 +121,23 @@ function renderRecipes() {
 }
 
 // Update count
+// 1 rețetă, 5 rețete, 20 de rețete
 function updateStats() {
-    stats.textContent = `${filteredRecipes.length} rețete`;
+    const n = filteredRecipes.length;
+    const label = n === 1 ? 'rețetă' : (n % 100 >= 20 ? 'de rețete' : 'rețete');
+    stats.textContent = `${n} ${label}`;
 }
 
 // Search functionality
 searchInput.addEventListener('input', (e) => {
-    const searchTerm = e.target.value.toLowerCase().trim();
-    
+    const searchTerm = normalize(e.target.value.trim());
+
     if (!searchTerm) {
         filteredRecipes = [...recipes];
     } else {
         filteredRecipes = recipes.filter(recipe => {
-            const nameMatch = recipe.Nume.toLowerCase().includes(searchTerm);
-            const contentMatch = recipe.Reteta.toLowerCase().includes(searchTerm);
+            const nameMatch = normalize(recipe.Nume).includes(searchTerm);
+            const contentMatch = normalize(recipe.Reteta).includes(searchTerm);
             return nameMatch || contentMatch;
         });
     }
@@ -128,7 +148,8 @@ searchInput.addEventListener('input', (e) => {
 
 function formatRecipeText(text) {
     if (!text) return { ingredients: '', prep: '' };
-    
+    text = escapeHtml(text);
+
     let ingredients = '';
     let prep = text;
     
@@ -163,12 +184,8 @@ function openModal(recipe) {
     modalPreparation.innerHTML = splitText.prep;
     
     // Handle images
-    currentImages = [];
-    if (recipe.Imagine) {
-        // Check if multiple images separated by comma
-        currentImages = recipe.Imagine.split(',').map(s => s.trim()).filter(s => s);
-    }
-    
+    currentImages = getImages(recipe);
+
     if (currentImages.length > 0) {
         currentImageIndex = 0;
         updateModalImage();
@@ -217,12 +234,13 @@ modalOverlay.addEventListener('click', (e) => {
     }
 });
 
+// Escape închide întâi poza mărită, apoi rețeta
 document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && modalOverlay.classList.contains('active')) {
-        closeModal();
-    }
-    if (e.key === 'Escape' && lightboxOverlay.classList.contains('active')) {
+    if (e.key !== 'Escape') return;
+    if (lightboxOverlay.classList.contains('active')) {
         lightboxOverlay.classList.remove('active');
+    } else if (modalOverlay.classList.contains('active')) {
+        closeModal();
     }
 });
 

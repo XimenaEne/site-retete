@@ -6,6 +6,7 @@ let csvFields    = [];
 let recipesData  = [];
 let editingIndex = null;
 let editNewFiles = [];
+let editImages   = [];     // pozele rețetei din fereastra de editare, până la salvare
 const localPreviews = {};  // imagini urcate acum, care încă nu au apărut pe site
 
 // ── GitHub config ──────────────────────────────────────────────────────────
@@ -120,6 +121,12 @@ function showAlert(msg, type = 'success') {
 
 function imgSrc(path) { return localPreviews[path] || path; }
 
+function getImages(r) { return (r.Imagine || '').split(',').map(s => s.trim()).filter(Boolean); }
+
+function escapeHtml(text) {
+    return (text || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
 // ── Tabs ───────────────────────────────────────────────────────────────────
 document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -220,7 +227,7 @@ async function uploadImages(files, baseName) {
     for (const [n, file] of files.entries()) {
         showLoading(`Se încarcă imaginea ${n + 1} din ${files.length}...`);
         const { content, ext } = await fileToBase64Image(file);
-        const safeName = baseName.toLowerCase().replace(/[^a-z0-9]/g, '-')
+        const safeName = normalize(baseName).replace(/[^a-z0-9]/g, '-')
             + '-' + Date.now() + '-' + Math.random().toString(36).slice(2, 5) + '.' + ext;
         const path = `imagini/${safeName}`;
         await putFile(path, content, `Imagine nouă pentru „${baseName}”`);
@@ -238,9 +245,9 @@ function updateBadges() {
 
 // ── Render helpers ─────────────────────────────────────────────────────────
 function getThumb(r) {
-    if (!r.Imagine) return `<div class="recipe-item-no-img">🍽️</div>`;
-    const src = imgSrc(r.Imagine.split(',')[0].trim());
-    return `<img class="recipe-item-thumb" src="${src}" onerror="this.style.display='none'" alt="">`;
+    const first = getImages(r)[0];
+    if (!first) return `<div class="recipe-item-no-img">🍽️</div>`;
+    return `<img class="recipe-item-thumb" src="${escapeHtml(imgSrc(first))}" onerror="this.style.display='none'" alt="">`;
 }
 
 function renderList(container, items) {
@@ -251,7 +258,7 @@ function renderList(container, items) {
     container.innerHTML = `<div class="recipe-list">${items.map(({ r, i }) => `
         <div class="recipe-item">
             ${getThumb(r)}
-            <div class="recipe-item-name">${r.Nume || '(fără nume)'}</div>
+            <div class="recipe-item-name">${escapeHtml(r.Nume) || '(fără nume)'}</div>
             <span class="badge ${r.Status === 'Publicat' ? 'badge-approved' : 'badge-pending'}">
                 ${r.Status === 'Publicat' ? '✔ Publicat' : '⏳ În așteptare'}
             </span>
@@ -374,26 +381,8 @@ function openEditModal(index) {
         editPreparare.value   = '';
     }
 
-    // Existing images
-    const imgs = r.Imagine ? r.Imagine.split(',').map(s => s.trim()).filter(Boolean) : [];
-    if (imgs.length) {
-        editImgGrid.innerHTML = imgs.map((src, i) =>
-            `<div class="img-edit-item">
-                <img src="${imgSrc(src)}" onerror="this.style.opacity=0.3" alt="">
-                <button class="img-edit-remove" data-i="${i}" title="Șterge">✕</button>
-             </div>`).join('');
-        editImgGrid.querySelectorAll('.img-edit-remove').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const i  = parseInt(this.dataset.i);
-                const arr = recipesData[editingIndex].Imagine.split(',').map(s=>s.trim()).filter(Boolean);
-                arr.splice(i, 1);
-                recipesData[editingIndex].Imagine = arr.join(',');
-                openEditModal(editingIndex); // re-render
-            });
-        });
-    } else {
-        editImgGrid.innerHTML = '<em style="color:var(--text-secondary);font-size:0.9rem;">Nicio imagine</em>';
-    }
+    editImages = getImages(r);
+    renderEditImages();
 
     editUploadPreview.innerHTML = '';
     editImagineInput.value = '';
@@ -401,6 +390,25 @@ function openEditModal(index) {
 
     editModalOverlay.classList.add('active');
     document.documentElement.style.overflow = 'hidden';
+}
+
+// Pozele se schimbă doar în fereastră; rețeta se modifică abia la salvare
+function renderEditImages() {
+    if (!editImages.length) {
+        editImgGrid.innerHTML = '<em style="color:var(--text-secondary);font-size:0.9rem;">Nicio imagine</em>';
+        return;
+    }
+    editImgGrid.innerHTML = editImages.map((src, i) =>
+        `<div class="img-edit-item">
+            <img src="${escapeHtml(imgSrc(src))}" onerror="this.style.opacity=0.3" alt="">
+            <button class="img-edit-remove" data-i="${i}" title="Șterge">✕</button>
+         </div>`).join('');
+    editImgGrid.querySelectorAll('.img-edit-remove').forEach(btn => {
+        btn.addEventListener('click', function() {
+            editImages.splice(parseInt(this.dataset.i), 1);
+            renderEditImages();
+        });
+    });
 }
 
 editImagineInput.addEventListener('change', function() {
@@ -425,29 +433,27 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal()
 
 async function saveEdit(approve) {
     if (editingIndex === null) return;
-    const r = recipesData[editingIndex];
-    r.Nume   = editNume.value.trim();
-    const ing  = editIngrediente.value.trim();
-    const prep = editPreparare.value.trim();
-    r.Reteta = `Ingrediente:\n${ing}\n\nMod de preparare:\n${prep}`;
-    const previousStatus = r.Status;
+    const nume = editNume.value.trim();
+    if (!nume) { showAlert('Rețeta trebuie să aibă un nume!', 'error'); return; }
 
+    const r = recipesData[editingIndex];
+    const before = { ...r };   // dacă salvarea nu reușește, rețeta rămâne neschimbată
+    let saved = false;
     try {
-        if (editNewFiles.length) {
-            const newUrls = await uploadImages(editNewFiles, r.Nume);
-            const existing = r.Imagine ? r.Imagine.split(',').map(s=>s.trim()).filter(Boolean) : [];
-            r.Imagine = [...existing, ...newUrls].join(',');
-            editNewFiles = [];
-        }
+        const images = [...editImages];
+        if (editNewFiles.length) images.push(...await uploadImages(editNewFiles, nume));
+        r.Nume    = nume;
+        r.Reteta  = `Ingrediente:\n${editIngrediente.value.trim()}\n\nMod de preparare:\n${editPreparare.value.trim()}`;
+        r.Imagine = images.join(',');
         if (approve) r.Status = 'Publicat';
-        const saved = await saveRecipes(approve ? `"${r.Nume}" aprobată și publicată!` : `"${r.Nume}" actualizată!`);
-        if (!saved) r.Status = previousStatus;
-        updateBadges(); renderPending(); renderApproved();
-        if (saved) closeModal();
+        saved = await saveRecipes(approve ? `"${nume}" aprobată și publicată!` : `"${nume}" actualizată!`);
     } catch (err) {
         console.error(err);
         showAlert('Eroare: ' + err.message, 'error');
     }
+    if (!saved) Object.assign(r, before);
+    refreshLists();
+    if (saved) closeModal();
     hideLoading();
 }
 document.getElementById('saveEditBtn').addEventListener('click',    () => saveEdit(false));

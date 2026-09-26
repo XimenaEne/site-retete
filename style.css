@@ -177,7 +177,8 @@ main {
 /* Recipe Grid */
 .recipe-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    /* min(...) ca să nu iasă cardurile din ecran pe telefoanele înguste */
+    grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
     gap: 3rem;
 }
 
