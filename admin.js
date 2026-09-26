@@ -281,17 +281,27 @@ function renderApproved() {
 }
 
 // ── Actions ────────────────────────────────────────────────────────────────
-function approveRecipe(i)   { recipesData[i].Status = 'Publicat';     updateBadges(); renderPending();  showAlert(`"${recipesData[i].Nume}" aprobată! Nu uita să salvezi.`); }
-function moveToWaiting(i)   { recipesData[i].Status = 'In Asteptare'; updateBadges(); renderApproved(); showAlert(`"${recipesData[i].Nume}" retrasă.`); }
-function deleteRecipe(i)    {
-    if (!confirm(`Ștergi "${recipesData[i].Nume}"?`)) return;
-    recipesData.splice(i, 1);
-    updateBadges(); renderPending(); renderApproved();
-    showAlert('Rețeta ștearsă. Salvează pentru a confirma!');
+// Fiecare acțiune se salvează imediat în GitHub; dacă salvarea nu reușește, se anulează
+function refreshLists() { updateBadges(); renderPending(); renderApproved(); }
+
+async function setStatus(i, status, msg) {
+    const r = recipesData[i];
+    const previous = r.Status;
+    r.Status = status;
+    refreshLists();
+    if (!await saveRecipes(msg)) { r.Status = previous; refreshLists(); }
 }
 
-document.getElementById('saveChangesBtn').addEventListener('click',  () => saveRecipes('Rețetele în așteptare au fost salvate!'));
-document.getElementById('saveApprovedBtn').addEventListener('click', () => saveRecipes('Rețetele aprobate au fost salvate!'));
+function approveRecipe(i)   { setStatus(i, 'Publicat',     `"${recipesData[i].Nume}" aprobată și publicată!`); }
+function moveToWaiting(i)   { setStatus(i, 'In Asteptare', `"${recipesData[i].Nume}" retrasă de pe site.`); }
+
+async function deleteRecipe(i) {
+    const r = recipesData[i];
+    if (!confirm(`Ștergi "${r.Nume}"?`)) return;
+    recipesData.splice(i, 1);
+    refreshLists();
+    if (!await saveRecipes(`"${r.Nume}" ștearsă.`)) { recipesData.splice(i, 0, r); refreshLists(); }
+}
 document.getElementById('logoutBtn').addEventListener('click', () => {
     if (confirm('Ieși din admin pe acest dispozitiv? Va trebui să introduci din nou cheia GitHub.')) logout();
 });
