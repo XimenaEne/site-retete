@@ -13,7 +13,11 @@ function loadGhConfig() {
     let saved = {};
     try { saved = JSON.parse(localStorage.getItem('ghConfig') || '{}'); } catch (e) {}
     const guess = guessRepoFromUrl();
-    return { owner: saved.owner || guess.owner, repo: saved.repo || guess.repo, token: saved.token || '' };
+    return {
+        owner: saved.owner || guess.owner || 'XimenaEne',
+        repo:  saved.repo  || guess.repo  || 'site-retete',
+        token: saved.token || ''
+    };
 }
 
 function saveGhConfig() {
