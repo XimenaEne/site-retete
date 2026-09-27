@@ -211,6 +211,14 @@
     <div class="tab-panel active" id="tab-newRecipe">
         <div class="card">
             <h2 class="card-title">Adaugă Rețetă Nouă</h2>
+            <div class="form-group" style="background:var(--gold-light); padding:1.2rem 1.4rem; border-radius:4px; border:1px solid var(--border);">
+                <label>Importă dintr-un link (opțional)</label>
+                <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
+                    <input type="text" id="importUrl" placeholder="https://exemplu.ro/reteta-de-ceva" style="flex:1; min-width:220px;">
+                    <button class="btn btn-gold btn-sm" id="importUrlBtn" type="button">Extrage rețeta</button>
+                </div>
+                <div style="color:var(--text-secondary); font-size:0.82rem; margin-top:0.6rem;">Completează automat numele, ingredientele și modul de preparare de pe pagină. Poza rămâne a ta — o alegi tu mai jos.</div>
+            </div>
             <div class="form-group">
                 <label>Nume Rețetă *</label>
                 <input type="text" id="addNume" placeholder="ex: Tort cu căpșuni">

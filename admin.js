@@ -312,6 +312,134 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
     if (confirm('Ieși din admin pe acest dispozitiv? Va trebui să introduci din nou cheia GitHub.')) logout();
 });
 
+// ── Import rețetă dintr-un link extern (fără AI) ────────────────────────────
+// Majoritatea blogurilor culinare includ în codul paginii date structurate
+// (JSON-LD sau microdate schema.org/Recipe), puse acolo pentru Google/Pinterest.
+// Le citim de-acolo — nimic nu trece prin vreun AI, doar despachetăm ce e deja
+// scris (invizibil) pe pagină. Site-ul nostru fiind static, browserul nu poate
+// citi direct alt domeniu (CORS), așa că trecem cererea printr-un proxy public.
+// Dacă unul dintre proxy-uri pică, primul lucru de verificat/înlocuit e lista de mai jos.
+const CORS_PROXIES = [
+    url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+    url => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`
+];
+
+async function fetchHtmlViaProxy(url) {
+    let lastErr;
+    for (const buildProxyUrl of CORS_PROXIES) {
+        try {
+            const res = await fetch(buildProxyUrl(url));
+            if (!res.ok) throw new Error(`Răspuns ${res.status}`);
+            const html = await res.text();
+            if (html && html.length > 200) return html;
+            throw new Error('Răspuns gol');
+        } catch (err) {
+            lastErr = err;
+        }
+    }
+    throw new Error('Nu am putut accesa pagina (' + (lastErr ? lastErr.message : 'eroare necunoscută') + ').');
+}
+
+// caută recursiv un obiect cu "@type": "Recipe" în JSON-LD — poate fi direct,
+// într-un array, sau ascuns într-un „@graph”
+function findRecipeInJsonLd(node) {
+    if (!node || typeof node !== 'object') return null;
+    if (Array.isArray(node)) {
+        for (const item of node) {
+            const found = findRecipeInJsonLd(item);
+            if (found) return found;
+        }
+        return null;
+    }
+    const types = Array.isArray(node['@type']) ? node['@type'] : [node['@type']];
+    if (types.some(t => typeof t === 'string' && t.toLowerCase() === 'recipe')) return node;
+    if (node['@graph']) return findRecipeInJsonLd(node['@graph']);
+    return null;
+}
+
+// „recipeInstructions” poate fi text simplu, listă de texte, listă de HowToStep
+// sau secțiuni HowToSection cu pași imbricați — le aducem pe toate la o listă de texte
+function flattenInstructions(value) {
+    if (!value) return [];
+    if (typeof value === 'string') return value.split(/\n+/).map(s => s.trim()).filter(Boolean);
+    if (Array.isArray(value)) return value.flatMap(flattenInstructions);
+    if (typeof value === 'object') {
+        if (value.itemListElement) return flattenInstructions(value.itemListElement);
+        if (value.text) return [String(value.text).trim()];
+        if (value.name) return [String(value.name).trim()];
+    }
+    return [];
+}
+
+function normalizeIngredientList(value) {
+    if (!value) return [];
+    if (Array.isArray(value)) return value.map(v => String(v).trim()).filter(Boolean);
+    return [String(value).trim()];
+}
+
+function extractFromJsonLd(doc) {
+    for (const script of doc.querySelectorAll('script[type="application/ld+json"]')) {
+        let data;
+        try { data = JSON.parse(script.textContent); } catch (e) { continue; }
+        const recipe = findRecipeInJsonLd(data);
+        if (recipe) return recipe;
+    }
+    return null;
+}
+
+// pentru pagini fără JSON-LD: microdate schema.org scrise direct în atributele HTML
+function extractFromMicrodata(doc) {
+    const scope = doc.querySelector('[itemtype*="schema.org/Recipe" i]');
+    if (!scope) return null;
+    const name = scope.querySelector('[itemprop="name"]')?.textContent.trim();
+    const ingredients = [...scope.querySelectorAll('[itemprop="recipeIngredient"], [itemprop="ingredients"]')]
+        .map(el => el.textContent.trim()).filter(Boolean);
+    const steps = [...scope.querySelectorAll('[itemprop="recipeInstructions"] li, [itemprop="recipeInstructions"] p')]
+        .map(el => el.textContent.trim()).filter(Boolean);
+    if (!name && !ingredients.length && !steps.length) return null;
+    return { name: name || '', recipeIngredient: ingredients, recipeInstructions: steps };
+}
+
+async function importRecipeFromUrl(url) {
+    if (!/^https?:\/\//i.test(url)) throw new Error('Adresa trebuie să înceapă cu http:// sau https://');
+    const html = await fetchHtmlViaProxy(url);
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+
+    const source = extractFromJsonLd(doc) || extractFromMicrodata(doc);
+    if (!source) throw new Error('Nu am găsit o rețetă recunoscută pe această pagină. Poți s-o scrii manual mai jos.');
+
+    const ingredients = normalizeIngredientList(source.recipeIngredient);
+    const steps = flattenInstructions(source.recipeInstructions);
+    if (!ingredients.length && !steps.length) {
+        throw new Error('Am accesat pagina, dar nu și ingrediente/pași într-un format recunoscut.');
+    }
+
+    return {
+        nume: (source.name || '').toString().trim(),
+        ingrediente: ingredients.join('\n'),
+        preparare: steps.map((s, i) => `${i + 1}. ${s}`).join('\n')
+    };
+}
+
+document.getElementById('importUrlBtn').addEventListener('click', async () => {
+    const url = document.getElementById('importUrl').value.trim();
+    if (!url) { showAlert('Lipește mai întâi un link.', 'error'); return; }
+
+    showLoading('Se extrage rețeta din pagină...');
+    try {
+        const extracted = await importRecipeFromUrl(url);
+        if (extracted.nume)        document.getElementById('addNume').value = extracted.nume;
+        if (extracted.ingrediente) document.getElementById('addIngrediente').value = extracted.ingrediente;
+        if (extracted.preparare)   document.getElementById('addPreparare').value = extracted.preparare;
+        showAlert('Rețetă extrasă! Verifică textul și adaugă tu poza.', 'success');
+    } catch (err) {
+        console.error(err);
+        showAlert(err.message || 'Nu am putut extrage rețeta din acest link.', 'error');
+    } finally {
+        hideLoading();
+    }
+});
+
 // ── Add New Recipe ─────────────────────────────────────────────────────────
 document.getElementById('addImagine').addEventListener('change', function() {
     const preview = document.getElementById('addUploadPreview');
