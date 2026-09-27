@@ -4,3 +4,5 @@ imagini_de_sortat/
 matcher.html
 *.py
 __pycache__/
+.vercel
+.env*
