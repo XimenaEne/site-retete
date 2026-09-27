@@ -219,11 +219,11 @@ function parsePreparation(text) {
         } else if (m) {
             steps.push(m[1]);
             inNotes = false;
-        } else if (NOTE_RE.test(line) || inNotes || (numbered && afterBlank && steps.length)) {
+        } else if (NOTE_RE.test(line) || inNotes) {
             notes.push(line);
             inNotes = true;
         } else if (numbered && steps.length) {
-            steps[steps.length - 1] += ' ' + line;
+            steps[steps.length - 1] += '\n' + line;
         } else {
             steps.push(line.replace(BULLET_RE, ''));
         }
@@ -258,7 +258,9 @@ function renderSteps(steps) {
             <button type="button" class="step-num" aria-pressed="false" aria-label="${stepLabel(i + 1, false)}">
                 <span class="num">${i + 1}</span>${CHECK_SVG}
             </button>
-            <p>${escapeHtml(s)}</p>
+            <div class="step-content">
+                ${s.split('\n').map(p => `<p>${escapeHtml(p)}</p>`).join('')}
+            </div>
         </li>`).join('');
 }
 
