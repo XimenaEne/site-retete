@@ -99,6 +99,7 @@ const approvedBadge    = document.getElementById('approvedBadge');
 const pendingList      = document.getElementById('pendingList');
 const pendingSearch    = document.getElementById('pendingSearch');
 const approvedList     = document.getElementById('approvedList');
+const approvedSearch   = document.getElementById('approvedSearch');
 const editModalOverlay = document.getElementById('editModalOverlay');
 const editNume         = document.getElementById('editNume');
 const editIngrediente  = document.getElementById('editIngrediente');
@@ -284,8 +285,11 @@ function renderPending()  {
 }
 pendingSearch.addEventListener('input', renderPending);
 function renderApproved() {
-    renderList(approvedList, recipesData.map((r,i)=>({r,i})).filter(({r})=>r.Status==='Publicat'&&r.Nume));
+    const term = normalize(approvedSearch.value.trim());
+    renderList(approvedList, recipesData.map((r,i)=>({r,i})).filter(({r})=>r.Status==='Publicat'&&r.Nume
+        && (!term || normalize(r.Nume).includes(term) || normalize(r.Reteta).includes(term))));
 }
+approvedSearch.addEventListener('input', renderApproved);
 
 // ── Actions ────────────────────────────────────────────────────────────────
 // Fiecare acțiune se salvează imediat în GitHub; dacă salvarea nu reușește, se anulează
